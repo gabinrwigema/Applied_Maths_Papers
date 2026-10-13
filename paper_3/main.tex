@@ -1,0 +1,481 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx, amsfonts, amsmath, amssymb, array, gensymb, quiver, mathtools, soul, tikz-cd, extarrows}\usepackage{graphicx, amsfonts, amsmath, amssymb, array, gensymb, quiver, mathtools, soul, tikz-cd, extarrows}
+
+% 1. LOAD PACKAGES
+\usepackage{amsthm}
+\usepackage[framemethod=default]{mdframed}
+\mdfsetup{linewidth=0.6pt} % Sets the line width for all mdframed boxes
+
+% 2. DEFINE STYLES AND ENVIRONMENTS
+% Style for theorems, lemmas, propositions (italic body)
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+
+% Style for definitions, examples (upright body)
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition} % Also shares the theorem counter
+\newtheorem{recap}[theorem]{Recap}
+
+% 3. APPLY BOXES TO ALL ENVIRONMENTS
+\surroundwithmdframed{theorem}
+\surroundwithmdframed{lemma}
+\surroundwithmdframed{corollary}
+\surroundwithmdframed{proposition}
+\surroundwithmdframed{definition}
+\surroundwithmdframed{recap}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+
+\usepackage{xcolor}   % optional, for colors
+\definecolor{codebg}{rgb}{0.95,0.95,0.95}
+
+\usepackage{setspace}
+\singlespacing
+
+\title{The Laplace Transform: Introduction, Theory, and Selected Applications in Engineering}
+
+\author{Scout Chen,  
+Gabin Ineza Rwigema}
+\date{December 2025}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduction and Theory}
+\subsection{Introduction to the Laplace Transform}
+In this paper, we discuss the \emph{\textbf{Laplace transform}}, $\mathcal{L}$, and its inverse $\mathcal{L}^{-1}$, a method used to solve linear differential equations with constant coefficients. In particular, this method is used to \emph{transform} solving a nonhomogeneous differential equation into an algebra problem---hence, the motivation: solving differential equations (besides those designed for the classroom) is often difficult in practice, whereas solving algebra problems is more algorithmic. This motivation can be summarized by the following diagram showing the ``workflow" of using the Laplace transform to solve a differential equation of $u(t)$, adapted from Logan (2006).
+% https://q.uiver.app/#q=WzAsNSxbMCwwLCJcXHRleHR7T0RFIGluIH0gdSh0KSJdLFs0LDBdLFswLDMsIlxcdGV4dHtTb2x1dGlvbiB0byBPREUgfXUodCkiXSxbMiwwLCJcXHRleHR7QWxnZWJyYWljIGVxdWF0aW9uIGluIH0gVShzKSJdLFsyLDMsIlUocykiXSxbMCwyLCJcXHRleHR7U29sdmluZyBkaXJlY3RseSAobW9yZSBkaWZmaWN1bHQpfSIsMix7InN0eWxlIjp7ImJvZHkiOnsibmFtZSI6ImRhc2hlZCJ9fX1dLFswLDMsIlxcbWF0aGNhbHtMfSJdLFszLDQsIlxcdGV4dHtTb2x2aW5nIGFsZ2VicmFpY2FsbHkgKGVhc2llcil9Il0sWzQsMiwiXFxtYXRoY2Fse0x9XnstMX0iXV0=
+\[\begin{tikzcd}
+	{\text{ODE in } u(t)} && {\text{Algebraic equation in } U(s)} && {} \\
+	\\
+	\\
+	{\text{Solution to ODE }u(t)} && {U(s)}
+	\arrow["{\mathcal{L}}", from=1-1, to=1-3]
+	\arrow["{\text{Solving directly (more difficult)}}"', dashed, from=1-1, to=4-1]
+	\arrow["{\text{Solving algebraically (easier)}}", from=1-3, to=4-3]
+	\arrow["{\mathcal{L}^{-1}}", from=4-3, to=4-1]
+\end{tikzcd}\]
+
+As this paper will eventually explore the applications of the Laplace transform, we must first define, then state and prove its properties. We will expand on Logan's (2006) introduction to the Laplace transform. To do this, we first formally define the Laplace transform.
+\begin{definition}
+    (Logan 2006) The \emph{Laplace transform} of a function $u(t)$ defined on $0\leq t < \infty$ is the function $U(s)$ defined by
+    \begin{equation*}
+        \mathcal{L}[u(t)]=U(s) = \int_{0}^{\infty}u(t)e^{-st} \mathrm{d}t,
+    \end{equation*}
+    provided the improper integral exists\footnotemark. From an algebraic/functional perspective, we may also view the Laplace transform as a function
+    \[
+    \mathcal{L}\colon \{\text{set of functions $u(t)$}\} \to \{\text{set of functions $U(s)$}\}, \quad u(t)\mapsto U(s),
+    \]
+    where $u,t$ from the domain are called \emph{time domain} variables, and $U,s$ from the codomain are called \emph{transform domain} variables.
+\end{definition}
+\footnotetext{More criteria for existence of the Laplace transform of certain functions will be given in \textbf{Theorem 1.2.}}
+
+To actually use the Laplace transform to help us solve problems, we will also need to eventually \emph{invert} it to get us back to our original function $u(t)$. Thus, this raises the notion of an \emph{inverse transform}, denoted $\mathcal{L}^{-1}$. Specifically, you can view this as the inverse function\footnote{From algebra, you may recall that a function has an inverse if and only if it is \emph{bijective}; this ties into the later discussion of \emph{uniqueness} in \textbf{1.3: Proof of Uniqueness of Laplace Transform}. In short, it is generally possible to say that the Laplace transform bijects over suitable function spaces.} of the Laplace transform:
+\[
+\mathcal{L}^{-1}\colon \{\text{set of functions $U(s)$}\} \to \{\text{set of functions $u(t)$}\}, \quad U(s)\mapsto u(t).
+\]
+
+\subsection{Proof of Existence and Properties of the Laplace Transform}
+To begin, we need to classify the functions for which the Laplace transform exists; in other words, we need \emph{existence} conditions for functions that can undergo a Laplace transform.
+\begin{theorem}
+    (Logan 2006) The existence of a Laplace transform for a function $u$ is guaranteed if:
+    \begin{enumerate}
+        \item (\textbf{Exponential order}) There exist $M>0$ and $r<s$ for which $|u(t)|\leq Me^{rt}$.
+        \item (\textbf{Piecewise continuous}) $u(t)$ is piecewise continuous\footnotemark on $0\leq t < \infty$.
+    \end{enumerate}
+\end{theorem}
+\footnotetext{From an intuitive perspective, \emph{piecewise continuous} refers to a function that is continuous everywhere except for a finite number of points where only finite one-sided limits exist (i.e. the \emph{floor function}).}
+The reason why the exponential order condition exists is because it guarantees that $u(t)$ does not grow too fast so that it ``outpaces" the decay of the other term in the integrand, $e^{-st}$. Specifically, it is necessary that $s>r$ for the transform to exist.
+
+The piecewise continuous condition exists to guarantee that the integral over a finite interval $(0,T)$ converges for any finite $T$. Exponential order then guarantees that the improper integral exists as $T\to \infty$. This intuition can be applied to the formal proof.
+
+\noindent \emph{\textbf{Proof.}} Given the definition of the Laplace transform, we can split up the integral as
+\begin{equation}
+    \int_{0}^{\infty}u(t)e^{-st}\mathrm{d}t = \int_{0}^{T}u(t)e^{-st}\mathrm{d}t + \int_{T}^{\infty}u(t)e^{-st}\mathrm{d}t, \quad 0<T<\infty.
+\end{equation}
+The first integral is evaluated over a finite interval, and since $u(t)$ is piecewise continuous by assumption, the integral is a finite sum of finite areas, and is thus finite and exists. To show that the second integral converges, we can apply the triangle inequality:
+\begin{equation}
+    \left|\int_{T}^{\infty}u(t)e^{-st}\mathrm{d}t\right| \leq \int_{T}^{\infty} \left|u(t)e^{-st}\right|\mathrm{d}t = \int_{T}^{\infty} \left|u(t)\right| e^{-st}\mathrm{d}t.
+\end{equation}
+Since $u(t)$ is of exponential order by assumption, we have
+\begin{equation}
+    \int_{T}^{\infty}\left|u(t)\right|e^{-st}\mathrm{d}t \leq \int_{T}^{\infty}Me^{rt}\cdot e^{-st}\mathrm{d}t = M\int_{T}^{\infty}e^{-(s-r)t}\mathrm{d}t.
+\end{equation}
+This integral can be evaluated to yield
+\begin{equation}
+    M\left[\frac{e^{-(s-r)t}}{-(s-r)}\right]_{T}^{\infty}=\lim_{b\to \infty} \frac{M}{s-r}\left[e^{-(s-r)T} - e^{-(s-r)b}\right]
+\end{equation}
+This limit only converges for $s>r$, and under this condition, the second integral converges to $\frac{M}{s-r}e^{-(s-r)T}$. Thus, we can see that the sum, and thus the Laplace transform, exists. \qed \\
+
+The Laplace transform is used to transform the derivatives ($u', u''$, etc.) of functions into non-differentiated functions (of the form $U(s)$)---hence their applications in solving differential equations. In particular, we have the following identities:
+\begin{theorem}
+    (Logan 2006) Let $u(t)$ be a function whose Laplace transform exists, and let $U(s)$ be said transform. Then,
+    \begin{equation*}
+        \mathcal{L}[u'] = sU(s) - u(t),
+    \end{equation*}
+    \begin{equation*}
+        \mathcal{L}[u''] = s^2U(s) - su(0) - u'(0).
+    \end{equation*}
+\end{theorem}
+\emph{\textbf{Proof.}} Via integration by parts, we have
+\[
+\mathcal{L}[u'] = \int_{0}^{\infty}u'(t)e^{-st} \mathrm{d}t = \left[u(t)e^{-st}\right]_{t=0}^{t=\infty} - \int_{0}^{\infty}-su(t)e^{-st} \mathrm{d}t = -u(0)+sU(s), \quad s>0.
+\]
+The second derivative follows via more integration by parts, which is simple to verify. \qed \\
+
+Additionally, there exist some additional properties that make the manipulation of Laplace transforms easier. The proof for these three properties follow directly from the definition of the Laplace transform and properties of integrals.
+\begin{theorem}
+    (Logan 2006) Let $u(t),v(t)$ be functions whose Laplace transforms exist. Then we have the following properties:
+    \begin{enumerate}
+        \item (\textbf{Linearity}) The Laplace transform and its inverse are linear:
+        \begin{equation*}
+            \mathcal{L}[c_1u + c_2v] = c_1\mathcal{L}[u] + c_2\mathcal{L}[v],
+        \end{equation*}
+        \begin{equation*}
+            \mathcal{L}^{-1}[c_1u + c_2v] = c_1\mathcal{L}^{-1}[u] + c_2\mathcal{L}^{-1}[v].
+        \end{equation*}
+        \item (\textbf{Shift Property}) The Laplace transform of a function times an exponential shifts the transform:
+        \begin{equation*}
+            \mathcal{L}[u(t)e^{at}] = U(s-a).
+        \end{equation*}
+        \item (\textbf{Switching Property}) The Laplace transform of a function that switches on\footnotemark at $t=a$ is given by:
+        \begin{equation*}
+            \mathcal{L}[h_a(t)u(t-a)] = U(s)e^{-as}.
+        \end{equation*}
+    \end{enumerate}
+\end{theorem}
+\footnotetext{This is commonly known as the \emph{Heaviside function}.}
+\emph{\textbf{Proof.}} To prove linearity, we see that
+\begin{align*}
+    \mathcal{L}[c_1u + c_2v] \quad & = & \int_{0}^{\infty}(c_1u(t)+c_2v(t))e^{-st}\mathrm{d}t \\
+    & = & c_1\int_{0}^{\infty}u(t)e^{-st}\mathrm{d}t + c_2\int_{0}^{\infty}v(t)e^{-st}\mathrm{d}t \\
+    & = & c_1\mathcal{L}[u] + c_2\mathcal{L}[v].
+\end{align*}
+To prove the shift property, we see that
+\begin{align*}
+    \mathcal{L}[u(t)e^{at}] \quad & = & \int_{0}^{\infty}u(t)e^{at}e^{-st} \mathrm{d}t \\
+    & = & \int_{0}^{\infty}u(t)e^{-(s-a)t}\mathrm{d}t \\
+    & = & \mathcal{L}[u(s-a)] = U(s-a).
+\end{align*}
+Finally, to prove the switching property, we see that
+\begin{align*}
+    \mathcal{L}[h_a(t)u(t-a)] \quad & = & \int_{0}^{\infty} h_a(t)u(t-a)e^{-st}\mathrm{d}t & \\
+    & = & \int_{a}^{\infty}u(t-a)e^{-st}\mathrm{d}t & \qquad \text{$h_a(t)<0$ for $t<a$} \\
+    & = & \int_{0}^{\infty}u(\tau)e^{-s(a+\tau)} \mathrm{d}\tau & \qquad \text{Substitute $\tau=t-a$} \\
+    & = & \int_{0}^{\infty}u(\tau)e^{-s\tau}\mathrm{d}\tau \cdot e^{-sa} \\
+    & = & \mathcal{L}(u) e^{-sa} = U(s)e^{-sa}.
+\end{align*}
+\qed
+
+\subsection{Proof of Uniqueness of Laplace Transform}
+A question that may naturally arise from learning about the Laplace transform is whether or not the outputs are \emph{unique}; that is, given a transformed function $U(s)$, is it possible that two different functions $u_1(t), u_2(t)$ from the domain map to it, and thus the transform's inverse is not well-defined? As it turns out, we \emph{can} say something about the uniqueness of the Laplace transform (with the aid of a few tools from analysis\footnote{While this may be beyond the scope of the course, any new terms will be explained, at least ``intuitively."}).
+\begin{theorem}
+    (Marshall 2016) Suppose that functions $f$ and $g$ are piecewise continuous on $[0, \infty)$ and are of exponential order (i.e. $|f(t)|\leq Me^{rt}$). Then, if $\mathcal{L}[f(s)]=\mathcal{L}[g(s)]$ for $s>r$, then $f(t)=g(t)$ for $t\geq 0$.
+\end{theorem}
+\emph{\textbf{Proof.}} Via the assumption, we have that $\mathcal{L}[f]=\mathcal{L}[g]$, and thus $\mathcal{L}[f]-\mathcal{L}[g]=0$, and by linearity of Laplace transforms, $\mathcal{L}[f-g]=0$. Thus, if we define a new function $h\coloneq f-g$, it is sufficient to prove that if $\mathcal{L}[h(s)]=0$ for $s>r$, then $h(t)=0$ for all $t\geq 0$ (as this would imply that $f-g=0\implies f=g$).
+
+First recall the formula for the Laplace transform:
+\[
+\mathcal{L}[f(s)]=\int_{0}^{\infty}f(t)e^{-st} \mathrm{d}t.
+\]
+We now perform a ``trick": we fix an $s_0>r$, and we let $s=s_0 + n + 1$ to obtain
+\begin{equation*} 
+    \mathcal{L}[h]=0 \implies 0=\int_{0}^{\infty}h(t)e^{-(s_0+n+1)t}\mathrm{d}t = \int_{0}^{\infty}h(t)e^{-s_0t}e^{-nt}e^{-t}\mathrm{d}t.
+\end{equation*}
+We use the $u$-substitution $u(t)=e^{-t}$ to obtain
+\begin{equation} \setcounter{equation}{1}
+    \int_{0}^{\infty} h(t)u^{s_0}u^nu \ \mathrm{d}t \xlongequal{t=-\ln u} \int_{0}^{\infty} h(-\ln u)u^{s_0}u^nu \ \mathrm{d}t \xlongequal{\mathrm{d}t=\frac{\mathrm{d}u}{-e^{-t}}=\frac{\mathrm{d}u}{-u}} \int_{0}^{1} h(-\ln u)u^{s_0}u^n \ \mathrm{d}u.
+\end{equation}
+If we let $j(u)\coloneq u^{s_0}h(-\ln u)$, then $j$ is piecewise continuous on $(0,1]$ (as it is a composition of piecewise continuous and continuous functions) and 
+\[
+\lim_{u\to 0} j(u) = \lim_{t\to \infty} e^{-s_0 t}h(t)=0.
+\]
+This limit exists because we have limited $s_0>r$. Thus, if we define $j(0)\coloneq 0$, we have that
+\begin{equation*}
+    \int_{0}^{1}j(u)p(u) \mathrm{d}u=0,
+\end{equation*}
+where $p(u)$ is an arbitrary polynomial by (1). Because this integral evaluates to zero for any polynomial $p$, we can pick a function $g$ that can be \emph{uniformly approximated}\footnote{\emph{Uniformly approximated} means that for any tiny amount of error, you can find a polynomial $p(u)$ that stays within that error margin of $g(u)$ for every single point in the interval $[0, 1]$ simultaneously.} by polynomials via its power series. Thus, we can rewrite the integral as
+\begin{equation}
+    \int_{0}^{1}j(u)g(u)\mathrm{d}u=0.
+\end{equation}
+We now continue using a proof by contradiction. Because $j$ is piecewise continuous, we can look at a subinterval of $(0,1)$ where $j$ is continuous. Assume that $j$ is not the zero function. This means that there exists a $u_0\in (0,1)$ in this continuous subinterval such that $j(u_0)\ne 0$; we define $H\coloneq j(u_0)$. Since $j$ is continuous, there necessarily exists an interval $J$ of width $2c$ around $u_0$ where the function does not drop below\footnote{If $j(u_0)$ is negative, then by symmetry, we can reflect the function by replacing $j$ with $-j$.} $H/2$. In other words, let $J=[u_0-c, u_0+c]\subseteq (0,1)$. We let the minimum height on this interval be $c_1$; thus, $j\geq c_1$ on $J$.
+
+We next consider the function\footnote{If you are familiar with probability, you should note that this looks similar to the PDF of the normal distribution, except centered at $u_0$ and with parameter $d$ that controls the ``spread" of the function. We will use properties of the Gaussian function later in the proof.}
+\begin{equation}
+    g(u)=\frac{1}{d}e^{-\left(\frac{u-u_0}{d}\right)^2},
+\end{equation}
+where we let $d>0$ to ensure that $g$ has the property mentioned above of having a power series expansion which converges uniformly on $[0,1]$ so that (2) holds. Our goal is to now split the integral from (2) into three specific regions based on our interval $J$. Thus, we consider the following three integrals, where $I_1$ integrates over the interval $J$, and $I_2$ and $I_3$ integrate over the intervals in $(0,1)$ outside of $J$:
+\begin{align}
+    I_1 = \int_{J}g(u)\mathrm{d}u = \int_{u_0-c}^{u_0+c}g(u)\mathrm{d}u \xlongequal{t=(u-u_0)/d} \int_{-c/d}^{c/d}e^{-t^2} \mathrm{d}t \\
+    I_2 = \int_{u_0+c}^{1}g(u)\mathrm{d}u \xlongequal{t=(u-u_0)/d} \int_{c/d}^{(1-u_0)/d} e^{-t^2} \mathrm{d}t \\
+    I_3 = \int_{0}^{u_0 - c}g(u) \mathrm{d}u \xlongequal{t=(u-u_0)/d} \int_{-u_0/d}^{-c/d} e^{-t^2} \mathrm{d}t.
+\end{align}
+We can now estimate the value of the total integral $I_1+I_2+I_3$. For $I_1$, we know that we are integrating over our region $J$, which means that $j(u)\geq c_1$. This means that the integral of the product $j(u)g(u)$ is at least $c_1$ times the integral of $g$:
+\begin{equation}
+    \int_J j(u)g(u) \mathrm{d}u\geq c_1\cdot I_1.
+\end{equation}
+By also looking at $I_1$ in terms of $t$, we see that by choosing a small enough $d$, $I_1$ approaches the known Gaussian integral, which evaluates to $\sqrt{\pi}$, which we will denote as $A\coloneq \sqrt{\pi}$. Since $g$ is any function of the form (3) with $d>0$, we fix this small positive $d$, and thus $I_1\approx A$. Thus,
+\begin{equation}
+    \int_J j(u)g(u)\mathrm{d}u \geq c_1 A.
+\end{equation}
+In the region outside $J$, it is possible that the function $j$ is negative. However, because $j$ is piecewise continuous on a bounded interval, the function $j$ itself is bounded\footnote{This follows from the definition of piecewise continuity, specifically the \emph{finite} one-sided limits condition.}, and thus there exists some $N<\infty$ such that $|j(u)|\leq N$ for all $u$. If we view the integrals $I_2$ and $I_3$, we see that for small $d$, the limits of integration also approach $\pm \infty$. Since $e^{-t^2}$ decays quickly, and $I_2$ and $I_3$ represent the ``tails" of the Gaussian distribution with small bounded area, for a small $\epsilon>0$, we can choose a small $d$ such that $I_2\leq \epsilon$ and $I_3\leq \epsilon$. We combine these facts about $I_2$ and $I_3$ along with the property of $j$ on the intervals of $I_2$ and $I_3$ to see that
+\begin{align}
+    \int_{0}^{u_0-c}j(u)g(u)\mathrm{d}u \leq \int_{0}^{u_0-c} Ng(u)\mathrm{d}u = N\int_{0}^{u_0-c}g(u)\mathrm{d}u = NI_3 \\
+    \int_{u_0+c}^{1}j(u)g(u)\mathrm{d}u \leq \int_{u_0+c}^{1} Ng(u)\mathrm{d}u = N\int_{u_0+c}^{1}g(u)\mathrm{d}u = NI_2.
+\end{align}
+Combining (9) and (10), we have that
+\begin{align}
+    \int_{0}^{u_0-c}j(u)g(u)\mathrm{d}u + \int_{u_0+c}^{1}j(u)g(u)\mathrm{d}u \leq NI_3 + NI_2 \implies \int_{(0,1)\setminus J}j(u)g(u)\mathrm{d}u \leq N(I_2+I_3).
+\end{align}
+Since $I_2$ and $I_3\leq \epsilon$, (11) further becomes
+\begin{equation}
+    \int_{(0,1)\setminus J}j(u)g(u)\mathrm{d}u \leq 2N\epsilon.
+\end{equation}
+To set up the final contradiction, from (8), recall that it also necessarily follows that
+\begin{equation}
+    \int_J j(u)g(u)\mathrm{d}u \geq c_1 \frac{A}{2}.
+\end{equation}
+Thus, by basic properties of integrals we have
+\begin{equation}
+    \int_{0}^{1} j(u)g(u) \mathrm{d}u = \int_J j(u)g(u)\mathrm{d}u + \int_{(0,1)\setminus J}j(u)g(u)\mathrm{d}u,
+\end{equation}
+and we can then set up the inequality
+\begin{equation}
+    \int_{0}^{1} j(u)g(u) \geq \underbrace{ c_1\frac{A}{2}}_{\text{from (13)}} - \underbrace{2N\epsilon}_{\text{from (12)}}.
+\end{equation}
+If we choose
+\begin{equation}
+    \epsilon < \frac{c_1 A}{4N},
+\end{equation}
+we have that
+\begin{equation}
+    \int_{0}^{1} j(u)g(u) > 0,
+\end{equation}
+which contradicts (2). Thus, the assumption that $j$ is not the zero function is false. Recalling that $j(u)\coloneq u^{s_0}h(-\ln u)$ and $u\in (0,1)$, this necessitates that $h(-\ln u)=0$, and since the mapping $t=-\ln u$ covers all $t>0$, this implies that $h(t)=0$ for all $t>0$. \qed
+
+% \subsection{Connection to Fourier Transform}
+% You may notice that the Laplace transform looks similar to the Fourier transform $\mathcal{F}$:
+% \begin{equation*}
+%     \mathcal{F}(f(t))=F(\omega) = \int_{-\infty}^{\infty}f(t)e^{-i\omega t}\mathrm{d}t.
+% \end{equation*}
+% This is not a coincidence---in fact, 
+
+\section{The Convolution Property of Laplace Transform}
+
+In many physical systems, we require to use the convolution of two functions. Given two functions $x(t)$ and $y(t)$ whose Laplace transforms are $X(s)$ and $Y(s)$ respectively, what can we conclude then about $\mathcal{L}\left[{(x*y)(t)}\right]$ ?
+
+To understand the Laplace transform of a product of functions, let us revisit the convolution property of functions and expand it to the Laplace transforms.
+\\
+\begin{lemma}
+    For two functions $x(t)$ and $y(t)$ that are defined in the interval $[0,\infty)$, the convolution property of the Laplace transform for the product of these functions is given by the product of the Laplace transform of each individual function (Logan 2006), denoted by the following:
+    \[
+    \mathcal{L} (x*y) (t) = X(s) \; Y(s)
+    \]
+\end{lemma}
+Let us prove the lemma above. By definition of the convolution property of f(t):
+\begin{equation*} 
+f(t) = (x * y) (t) = \int_{0}^{t} x(T) y(t-T) dT \dots (1)
+\end{equation*}
+Recalling the Laplace transform of a normal function $f(t)$:
+\begin{equation*}
+\mathcal{L}\ [f(t)] = \int_{0}^{\infty} f(t) e^{-st} dt \dots (2)
+\end{equation*}
+Introducing (2) into (1):
+\begin{equation*}
+\mathcal{L}\left[(x * y)(t)\right] = \int_{0}^{\infty}\int_{0}^{t} x(T) y(t-T) dT\quad e^{-st}  dt \dots (3)
+\end{equation*}
+Applying Fubbini's theorem on eq (3) for iterating the order of integration from dTdt to dtdT:
+\begin{equation*}
+\mathcal{L}\{(x * y) (t) = \int_{0}^{\infty}\int_{T}^{t} x(T) y(t-T) e^{-st}\quad dt dT\dots (4)
+\end{equation*}
+\\
+Using change of variables on the inner integral of eq (4):\\
+\\
+let us define r = t - T $\dots$(5), \medskip thus t = r+T $\dots$(6) 
+\\
+As $T -> T,\qquad r= T-T = 0;$ \qquad \qquad \qquad As \; $T \to \infty, \; r \to \infty $
+
+\begin{equation*} \frac{dr}{dt} = \frac{d(t-T)}{dt} = 1, \qquad dr = dt ....(7)
+\end{equation*}
+
+Applying (5),(6),(7) into (4):
+\begin{align*}
+\mathcal{L}\{(x * y) (t) &= \int_{0}^{\infty} \int_{0}^{\infty} x(T) y(r)e^{-s(r+T)} drdT \\
+&= \int_{0}^{\infty}\int_{0}^{\infty} x(T) y(r) e^{-sr} e^{-sT}drdT\\
+&=\int_{0}^{\infty}x(T) e^{-sT}dT\int_{0}^{\infty}y(r)e^{-sr}dr \\
+\end{align*}
+Recalling eq(2) and applying it to (6) and (7):
+\begin{equation*}
+\int_{0}^{\infty}x(T)e^{-sT} dT = \mathcal{L} [x(s)] \dots (8) \qquad \qquad \qquad
+\int_{0}^{\infty}y(r)e^{-st}dt = \mathcal{L} [y(r)] \dots(9)
+\end{equation*}
+\\
+Thus, we can conclude that: $\mathcal{L}(x * y)(t) = \mathcal{L}[x]\; \mathcal{L}[y] \dots $(10)\\
+\\
+Deriving the inverse Laplace transform: $\mathcal{L^{-1}}{X(s)Y(s)} = {(x*y)(t)} \dots $ (11)
+\section{Application of the Laplace Transform in Different Engineering Fields}
+    After reviewing the Laplace transform and its properties for transforming differential equations into algebraic equations, let us understand the importance of Laplace transforms in simplifying  these operations across different engineering fields.
+\\
+    To better understand these relations, let us recall some important identities covered earlier. Let us define function $x(t)$ and $X(s)$ as its Laplace transform; the Laplace transform of its derivatives are defined below. Additionally, recall the relation of the Laplace transform of the unit switching function evaluated above. Lastly, let us recall the switching and shifting property of Laplace transforms.
+\begin{align*}
+&\mathcal{L}[x'(t)] = s\, X(s) - x(0)  &\mathcal{L}^{-1}[s\, X(s) - x(0)] = x'(t) \\
+&\mathcal{L}[x''(t)] = s^2\,X(s) - sx(0) - x'(0) \qquad \qquad &\mathcal{L}^{-1}[s^2\,X(s) - sx(0) - x'(0)] = x''(t)\\ 
+&\mathcal{L}[H(t-a)] = \frac{1}{s}e^{-as}  &\mathcal{L}^{-1}[\frac{1}{s}e^{-as}] = H(t-a)\\
+&\mathcal{L}[e^{-at}f(t)] = F(s - a) &\mathcal{L}^{-1}[F(s - a)] = e^{-at}f(t)\\
+&\mathcal{L}[H(t-a)f(t-a)] = e^{-as}F(s) &\mathcal{L}^{-1}[e^{-as}F(s)] = H(t-a) F(t-a)
+\end{align*}
+\\
+\subsection{Laplace Transforms and Nuclear Engineering }
+Laplace transforms provides an important tool to approach nuclear physics successive chain reactions and their decay rate of radioactive elements in nuclear physics. Laplace transform is employed in nuclear medicine to construct deconvoluton algorithms that analyze inputs signals from traces of the distribution of the radioactive medicine throughout the body by turning complex exponential function signals in time domain into algebraic forms in the frequency domain that are easier to compute (Carlsen, 2000).
+\\
+This paper analyzes the basis of nuclear physics, i.e radioactive decay and successive chain reactions, to understand use of Laplace transforms in creating models for the algorithms.
+\\
+The law of Radioactive decay states that, ``the rate of radioactive decay of an element is directly proportional to the number of undecayed nuclei present." (Sawant, 2018).\\
+
+ $\frac{dN}{dt} = -\lambda N  \dots(1)$ \hspace{1 cm}where $\lambda$ is the radioactive decay 
+\\
+\\
+As argued by Elhag and Osman, the rate of change of a daughter in successive nuclear decay chain reaction is equal to the difference between its rate of production and its rate of decay (2021).
+\begin{equation*}
+\frac{dN_2}{dt} = \lambda_1N_1 - \lambda_2N_2 \dots(2)
+\end{equation*}
+Similarly, this equation can be expanded to the $n^{th}$ decay:\\
+\begin{equation*}
+\frac{dN_3}{dt} = \lambda_{2}N_{2} - \lambda_3 N_3\dots(3)
+\end{equation*}
+\begin{equation*}
+\frac{dN_k}{dt} = \lambda_{k-1}N_{k-1} - \lambda_kN_k\dots(4)
+\end{equation*}
+To understand how the number of elements in a radioactive chain reaction changes overtime, let us understand the initial conditions of the system.\\ \\
+At the initial time, $t = 0,$ the parent substance has $N_1(t)$ population of radioactive elements, while other successive isotopes, $i.e \; N_2,N_3, \dots,N_k$ have zero population. 
+\begin{equation*}
+\mathcal{L}[\frac{dN_1(t)}{dt}] = \mathcal{L}[-\lambda_1 N_1(t)]
+\end{equation*}
+\begin{align*}
+&sN_1(s) - N_1(0) = -\lambda_1 N_1(s)\\
+&(s+\lambda_1)N_1(s) = N_1(0)\\
+&N_1(s) = N_1(0)\frac{1}{s+\lambda_1}\dots(4)
+\end{align*}
+After obtaining the Laplace transform of N(t), let us use inverse transform to find the function of N(t). Applying the shifting property of Laplace transform, N(t) becomes:
+\begin{align*}
+&N(t)\equiv\mathcal{L}^{-1}[N_1(s)] = N_1(0)\mathcal{L}^{-1}[\frac{1}{s - (-\lambda)}]\\
+&N_1(t) = N_1(0) e^{-\lambda t}
+\end{align*}
+Similarly, we can analyze the decay of the first daughter isotope.
+\begin{align*}
+\mathcal{L}[\frac{dN_2(t)}{dt}] &= \mathcal{L}[\lambda_1N_1(t) -\lambda_2N_2(t)]\\
+sN_2(s) - N_2(0) &= \mathcal{L}[\lambda_1N_1(t)] -\mathcal{L} [\lambda_2N_2(t)]\dots(5)\\
+\end{align*}
+Referring to the initial conditions,
+\begin{equation*}
+N_2(0) = 0\dots(6);\\
+\end{equation*}
+\\
+Applying eq (4), (6) and the Linearity Property of Laplace transform on eq (5):
+\begin{align*}
+sN_2(s) + \lambda_2 N_2(0) &= \lambda_1N_1(s)\\
+(s + \lambda_2)N_2(s) &= \lambda_1N_1(s)\\
+N_2(s) &= \frac{ \lambda_1}{s+\lambda_2} \left[\frac{N_1(0)}{s+\lambda_1}\right]\\
+\end{align*}
+\begin{align*}
+N_2(s) &= \lambda_1 N_1(0)\left[\frac{1 }{(s+\lambda_1)(s+\lambda_2)}\right]\\
+&= \lambda_1 N_1(0)\left[\frac{A}{(s+\lambda_1)}+\frac{B}{(s+\lambda_2)}\right]\\
+&= \frac{\lambda_1}{\lambda_2 - \lambda_1}N_1(0)\left[\frac{1}{(s+\lambda_1)}-\frac{1}{(s+\lambda_2)}\right] \dots (7)
+\end{align*}
+Applying inverse Laplace transform on eq(7), $N_2(s)$, we can evaluate $N_2(t)$:
+\begin{equation*}
+N_2(t) \equiv \mathcal{L}^{-1}[N_2(s)] = \frac{\lambda_1}{\lambda_2 - \lambda_1}N_1(0)\mathcal{L}^{-1}\left[\frac{1}{(s+\lambda_1)}-\frac{1}{(s+\lambda_2)}\right]
+\end{equation*}
+Applying the linearity and shifting properties of inverse Laplace transform:
+\begin{equation*}
+N_2(t) \equiv \mathcal{L}^{-1}[N_2(s)] = \frac{\lambda_1 N_1(0)}{\lambda_2 - \lambda_1} \left(\mathcal{L}^{-1}\left[\frac{1}{(s-(-\lambda_1))}\right] -\mathcal{L}^{-1}\left[\frac{1}{(s-(-\lambda_2))}\right]\right) \dots (8)
+\end{equation*}
+\begin{equation*}
+N_2(t)=\frac{\lambda_1}{\lambda_2 - \lambda_1}N_1(0)\left(e^{-\lambda_1t} e^{-\lambda_2t}\right)\dots(9)
+\end{equation*}
+Applying the same relations for $N_3(t)$, we can derive a model for $N_3$ decay. 
+\begin{align*}
+\frac{dN_3(t)}{dt} &= \lambda_{2}N_2(t) - \lambda_3 N_3(t)\\
+\mathcal{L}[N'_3(t)] &= \lambda_{2} \mathcal{L}[N_2(t)] - \lambda_3 \mathcal{L}[N_3(t)]\\
+(s+\lambda_3)N_3(s) &=\lambda_2 N_2(s) \dots (10)
+\end{align*}
+Substituting eq(9) into (10):\\
+\begin{equation*}
+N_3(s) = \frac{\lambda_2}{s+\lambda_3} \frac{ \lambda_1}{s+\lambda_2} \left(\frac{N_1(0)}{s+\lambda_1}\right) \dots (11)
+\end{equation*}
+Following the same relations, we can model the behavior of $N_k $ decay:\\
+\begin{align*}
+\frac{dN_k}{dt} &= \lambda_{k-1}N_{k-1} - \lambda_k N_k\\
+sN_k(s) - N_k(0)&= \lambda_{k-1} \mathcal{L} [N_{k-1}] - \lambda_k \mathcal{L} [N_k] 
+\end{align*} 
+where $N_k = 0$ as defined by the initial conditions.
+\begin{align*}
+(s + \lambda_k)N_k(s) &= \lambda_{k-1} \mathcal{L} [N_{k-1}]\\
+N_k(s)&= \frac{\lambda_{k-1}}{s + \lambda_k}N_{k-1}(s)\\
+N_k(s)&= \frac{\lambda_{k-1}}{s + \lambda_k}\left[\frac{\lambda_{k-2}}{s + \lambda_k-1}N_{k-2}(s)\right]
+\end{align*}
+If we continue to expand $N_k(s)$ recursively until we reach the $N_1(s)$ term, we obtain an Laplace transform equation of the form below:
+
+\begin{equation*}
+N_k(s) = \frac{(\lambda_{k-1}) (\lambda_{k-2}) (\lambda_{k-3}) \dots (\lambda_1)} {(s + \lambda_k)(s + \lambda_{k-1}) \dots (s + \lambda_1)} N_1(0) \dots (12)
+\end{equation*}
+\\
+Provided we applied Inverse transform and expansion following partial fractions on eq $(12)$, we would derive the Bateman equation. The Bateman equation, developed by Ernest Rutherford, is the basis that algorithms use to model decay chain reactions( Carlsen, 2020). These algorithms help researchers model and understand the behavior the large exponential functions of chain nuclear reactions in nuclear medicine and other fields.
+\subsection{Laplace Transform and Mechanical Engineering}
+Laplace transform provides another tool to understand complex differential equations of spring systems, allowing us to model oscillatory-based motion that involve both damping and resonance.\\
+Using Newton's Second law of motion, "the sum of all forces acting on the car should be equal to the product of its mass and acceleration," and  Hooke's law, we model the oscillatory motion of a system(Kokane, 2021). 
+\\
+Let's assume that car suspension system starts from rest at the equilibrium position,  $x(0) = 0$ and $x'(0) = 0$ , and  system has  $m = 1,\; b= 5,\; k = 6,\; and\; f(t) = 6 sin 3t$
+\begin{align*}
+m\frac{d^2x(t) }{dt^2}+b\frac{dx(t)}{dt}+kx(t) = f(t)\\
+\mathcal{L}\left[\frac{d^2x(t) }{dt^2}+b\frac{dx(t)}{dt}+kx(t)\right]= \mathcal{L}[f(t)]
+\end{align*}
+Using the identities for $x''(t)$, $x'(t)$, and the initial conditions stated above:
+\begin{align*}
+&s^2X(s) -sx(0) -x'(0)+ b(sX(s) -x(0)+ kX(s) = F(s)\\
+&(s^2+bs+k)X(s)=F(s)\\
+&X(s) = \frac {F(s)}{s^2+bs+k} \dots(1)
+\end{align*}
+Applying the initial values to the compute the value of $X(s)$:
+\begin{align*}
+F(s) &= 6\mathcal{L}\left[sin3t\right]\\
+F(s) &= 6\left(\frac{3}{s^2 + 9}\right)\\
+X(s)& =\frac{18}{(s^2+9)(s+2)(s+3)}\\
+{X}(s)&= \frac{A}{s+2} + \frac{B}{s+3} + \frac{Cs + D}{s^2+9}\dots (3)
+\end{align*}
+Solving \; for\; the A, B, C, D coefficients we obtained A = $\frac{18}{13}$,  B = $-1$, C = $\frac{5}{13}$, D = $\frac{3}{13}$. 
+\begin{equation*}
+X(s)= \frac{18}{13(s-(-2))} - \frac{1}{s-(-3)} - \frac{5s + 3}{13(s^2+9)} \dots(4)
+\end{equation*}
+Applying inverse transform of $X(s)$ and the linearity property of inverse transform on eq (4):
+\begin{align*}
+\mathcal{L}^{-1}[{X}(s) ] \equiv x(t) = \frac{18}{13}\mathcal{L}^{-1} \left[\frac{1}{(s-(-2))}\right] -\mathcal{L}^{-1} \left[\frac{1}{s-(-3)}\right] - \frac{5}{13}\mathcal{L}^{-1} \left[\frac{s}{s^2+3^2}\right] - \frac{1}{13}\mathcal{L}^{-1} \left[\frac{ 3}{s^2+3^2}\right] \dots (5)
+\end{align*}
+Applying Switching and Shifting Properties of the inverse Laplace transforms on eq (5):
+\begin{equation*}
+x(t)= \frac{18}{13} e^{-2t} - e^{-3t}-\frac{5}{13}cos (3t) - \frac{1}{13} sin (3t) \dots (6)
+\end{equation*}
+The value of x(t) represents the displacement of the system, in our case---the car's position relative to the ground---that results from exertion of external forces and resonance. By minimizing the value of x(t), the car suspension system simulates a smooth motion despite the uneven terrain.
+\newpage
+\begin{thebibliography}{99}
+\bibitem{Carlsen}
+Carlsen, O. (2000). "Direct Deconvolution Algorithms Based on Laplace Transforms in Nuclear Medicine Applications." \textit{Nuclear Medicine Communications}, 21(9), 857–868. https://doi.org/10.1097/00006231-200009000-00013
+\bibitem{Sawant}
+Sawant, L.S. April 2018. "Applications of Laplace Transform in Engineering Fields". \textit{International Journal of Engineering and Technical Research.(IRJET)}, Volume-5 Issue-5.https://www.irjet.net/archives/V5/i5/IRJET-V5I5593.pdf
+\bibitem{Logan}
+Logan, David. "A First Course in Differential Equations" (2006). Springer.
+\bibitem{(Kokane}
+Kokane, A. S., Wadkar, B. R. (2021). "Applications of Laplace Transform in science and technology." \textit{Journal of Physics Conference Series, 1913(1), 012127.} https://doi.org/10.1088/1742-6596/1913/1/012127
+\bibitem{Elhag}
+Elhag, Osman. September 2021. "Applications of Laplace Transform in Successive Radioactive Decay of Nucleus" \textit{ International journal of Novel Research in Physics Chemistry and Mathematics}. Volume-8.Issue 3, pp:1-3. https://www.researchgate.net/publication/354507682\_Applications\_of\_Laplace\_Transform
+\_in\_Successive\_Radioactive\_Decay\_of\_Nucleus\_International\_journal\_of\_Novel\_Research\_
+in\_Physics\_Chemistry\_and\_Mathematics.
+\end{thebibliography}
+\end{document}
